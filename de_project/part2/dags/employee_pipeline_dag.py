@@ -158,17 +158,18 @@ with DAG(
     dag_id="employee_realtime_pipeline",
     description="Part 2: Real-time employee data processing with FileSensor",
     start_date=datetime(2026, 4, 1),
-    schedule="*/2 * * * *",   # Re-check every 2 minutes for new files
+    schedule="*/2 * * * *",
     catchup=False,
     tags=["data-engineering", "part2", "realtime"],
 ) as dag:
 
     sense_file = FileSensor(
         task_id="sense_file",
-        filepath=os.path.join(WATCH_DIR, "*.csv"),  # watches for CSV files
-        poke_interval=30,      # check every 30 seconds
-        timeout=3600,          # give up after 1 hour
-        mode="poke",
+        filepath=os.path.join(WATCH_DIR, "*.csv"),
+        poke_interval=20,
+        timeout=119,           # just under 2 min so it exits before next run starts
+        mode="reschedule",     # releases worker slot between pokes — no hanging
+        soft_fail=True,        # no file found = skipped (not failed), run ends cleanly
         fs_conn_id="fs_default",
     )
 
