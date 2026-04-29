@@ -1,0 +1,28 @@
+# Secrets
+.env
+*.env
+
+# Large data files
+*.parquet
+*.csv
+part1/input/
+part1/output/
+part2/input/
+part2/output/
+part2/sample_data/
+sample_data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Airflow logs and temp
+airflow-docker/logs/
+airflow-docker/config/
+part1/tmp/
+part2/tmp/
+
+# IDE
+.vscode/
