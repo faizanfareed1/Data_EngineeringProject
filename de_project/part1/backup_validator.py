@@ -1,10 +1,16 @@
-import pandas as pd
+"""
+Module for post-processing validation of NYC Yellow Taxi records.
+"""
+
+# pylint: disable=trailing-newlines
 import logging
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-class TaxiBackupValidator:
+class TaxiBackupValidator:  # pylint: disable=too-few-public-methods
     """
     Post-processing validation: confirms all derived columns are present
     and contain sensible values after the Processor has run.
@@ -28,6 +34,7 @@ class TaxiBackupValidator:
     VALID_TIME_OF_DAY = {"Night", "Morning", "Afternoon", "Evening"}
 
     def validate(self, df: pd.DataFrame) -> bool:
+        """Runs all checks to certify data quality post-processing."""
         logger.info("Starting backup (post-processing) validation.")
         passed = True
 
@@ -49,7 +56,7 @@ class TaxiBackupValidator:
     def _check_derived_columns_exist(self, df: pd.DataFrame) -> bool:
         missing = [c for c in self.REQUIRED_DERIVED_COLUMNS if c not in df.columns]
         if missing:
-            logger.error(f"Missing derived columns after processing: {missing}")
+            logger.error("Missing derived columns after processing: %s", missing)
             return False
         logger.info("All derived columns are present.")
         return True
@@ -57,7 +64,10 @@ class TaxiBackupValidator:
     def _check_removed_columns_gone(self, df: pd.DataFrame) -> bool:
         still_present = [c for c in self.REMOVED_COLUMNS if c in df.columns]
         if still_present:
-            logger.warning(f"Columns that should have been removed are still present: {still_present}")
+            logger.warning(
+                "Columns that should have been removed are still present: %s",
+                still_present,
+            )
             return False
         logger.info("All columns to remove have been successfully removed.")
         return True
@@ -67,7 +77,7 @@ class TaxiBackupValidator:
             return False
         neg = (df["trip_duration_minutes"] < 0).sum()
         if neg:
-            logger.warning(f"trip_duration_minutes has {neg} negative values.")
+            logger.warning("trip_duration_minutes has %s negative values.", neg)
             return False
         return True
 
@@ -77,7 +87,7 @@ class TaxiBackupValidator:
         # Allow nulls (where duration was 0), but no negatives
         neg = (df["average_speed_mph"].dropna() < 0).sum()
         if neg:
-            logger.warning(f"average_speed_mph has {neg} negative values.")
+            logger.warning("average_speed_mph has %s negative values.", neg)
             return False
         return True
 
@@ -90,7 +100,9 @@ class TaxiBackupValidator:
         if "pickup_month" in df.columns:
             invalid = ~df["pickup_month"].between(1, 12)
             if invalid.any():
-                logger.warning(f"pickup_month has {invalid.sum()} values outside 1–12.")
+                logger.warning(
+                    "pickup_month has %s values outside 1-12.", invalid.sum()
+                )
                 ok = False
         return ok
 
@@ -99,7 +111,7 @@ class TaxiBackupValidator:
             return False
         neg = (df["revenue_per_mile"].dropna() < 0).sum()
         if neg:
-            logger.warning(f"revenue_per_mile has {neg} negative values.")
+            logger.warning("revenue_per_mile has %s negative values.", neg)
             return False
         return True
 
@@ -115,6 +127,8 @@ class TaxiBackupValidator:
                 continue
             invalid = ~df[col].isin(valid_set)
             if invalid.any():
-                logger.warning(f"'{col}' has {invalid.sum()} values outside {valid_set}.")
+                logger.warning(
+                    "'%s' has %s values outside %s.", col, invalid.sum(), valid_set
+                )
                 ok = False
         return ok

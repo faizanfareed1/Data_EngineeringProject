@@ -1,10 +1,16 @@
-import pandas as pd
+"""
+Module for processing and enriching Employee Records DataFrame.
+"""
+
+# pylint: disable=trailing-newlines
 import logging
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-class EmployeeProcessor:
+class EmployeeProcessor:  # pylint: disable=too-few-public-methods
     """
     Processes validated employee HR records.
 
@@ -16,6 +22,7 @@ class EmployeeProcessor:
     """
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Processes and applies derived metrics to employee records."""
         logger.info("Starting processing step.")
         df = self._normalize_gender(df)
         df = self._normalize_contract_type(df)
@@ -23,7 +30,7 @@ class EmployeeProcessor:
         df = self._add_seniority_level(df)
         df = self._add_years_at_company(df)
         df = self._add_is_senior(df)
-        logger.info(f"Processing complete. Final shape: {df.shape}")
+        logger.info("Processing complete. Final shape: %s", df.shape)
         return df
 
     def _normalize_gender(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -36,7 +43,7 @@ class EmployeeProcessor:
             v = str(val).strip().upper()
             if v in ("M", "MALE"):
                 return "Male"
-            elif v in ("F", "FEMALE"):
+            if v in ("F", "FEMALE"):
                 return "Female"
             return "Unknown"
 
@@ -54,9 +61,9 @@ class EmployeeProcessor:
             v = str(val).strip().lower()
             if "full" in v:
                 return "Full-time"
-            elif "part" in v:
+            if "part" in v:
                 return "Part-time"
-            elif "free" in v:
+            if "free" in v:
                 return "Freelance"
             return "Unknown"
 
@@ -68,12 +75,11 @@ class EmployeeProcessor:
         def band(salary):
             if salary < 2000:
                 return "Entry"
-            elif salary < 4000:
+            if salary < 4000:
                 return "Mid"
-            elif salary < 7000:
+            if salary < 7000:
                 return "Senior"
-            else:
-                return "Executive"
+            return "Executive"
 
         df["salary_band"] = df["salary_eur"].apply(band)
         logger.info("Added column: salary_band")
@@ -86,14 +92,13 @@ class EmployeeProcessor:
         def seniority(yrs):
             if pd.isna(yrs) or yrs < 0:
                 return "Unknown"
-            elif yrs < 2:
+            if yrs < 2:
                 return "Junior"
-            elif yrs < 5:
+            if yrs < 5:
                 return "Mid-level"
-            elif yrs < 10:
+            if yrs < 10:
                 return "Senior"
-            else:
-                return "Principal"
+            return "Principal"
 
         df["seniority_level"] = df["years_experience"].apply(seniority)
         logger.info("Added column: seniority_level")

@@ -1,11 +1,17 @@
-import pandas as pd
-import os
+"""
+Module for reading Employee HR records from disk.
+"""
+
+# pylint: disable=duplicate-code, trailing-newlines
 import logging
+import os
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-class EmployeeReader:
+class EmployeeReader:  # pylint: disable=too-few-public-methods
     """Reads employee HR records from CSV or Excel files."""
 
     SUPPORTED_EXTENSIONS = [".csv", ".xlsx", ".xls"]
@@ -14,6 +20,7 @@ class EmployeeReader:
         self.file_path = file_path
 
     def read(self) -> pd.DataFrame:
+        """Loads Employee HR data from local filesystem path."""
         if not os.path.exists(self.file_path):
             raise FileNotFoundError(f"File not found: {self.file_path}")
 
@@ -22,9 +29,11 @@ class EmployeeReader:
 
         _, ext = os.path.splitext(self.file_path.lower())
         if ext not in self.SUPPORTED_EXTENSIONS:
-            raise ValueError(f"Unsupported file type: '{ext}'. Supported: {self.SUPPORTED_EXTENSIONS}")
+            raise ValueError(
+                f"Unsupported file type: '{ext}'. Supported: {self.SUPPORTED_EXTENSIONS}"
+            )
 
-        logger.info(f"Reading file: {self.file_path}")
+        logger.info("Reading file: %s", self.file_path)
 
         try:
             if ext == ".csv":
@@ -37,5 +46,5 @@ class EmployeeReader:
         if df.empty:
             logger.warning("File contains no data rows (headers only or empty).")
 
-        logger.info(f"Read {len(df)} rows and {len(df.columns)} columns.")
+        logger.info("Read %s rows and %s columns.", len(df), len(df.columns))
         return df

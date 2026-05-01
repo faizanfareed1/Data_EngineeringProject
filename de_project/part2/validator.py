@@ -1,27 +1,48 @@
-import pandas as pd
+"""
+Module for validating raw Employee records before ingestion.
+"""
+
+# pylint: disable=duplicate-code, trailing-newlines
 import logging
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-class EmployeeValidator:
+class EmployeeValidator:  # pylint: disable=too-few-public-methods
     """Pre-processing validation and cleaning for raw employee records."""
 
     REQUIRED_COLUMNS = [
-        "employee_id", "full_name", "email", "department", "gender",
-        "country", "salary_eur", "hire_date", "years_experience",
-        "performance_score", "contract_type", "weekly_hours",
+        "employee_id",
+        "full_name",
+        "email",
+        "department",
+        "gender",
+        "country",
+        "salary_eur",
+        "hire_date",
+        "years_experience",
+        "performance_score",
+        "contract_type",
+        "weekly_hours",
     ]
-    NUMERIC_COLUMNS = ["salary_eur", "years_experience", "performance_score", "weekly_hours"]
+    NUMERIC_COLUMNS = [
+        "salary_eur",
+        "years_experience",
+        "performance_score",
+        "weekly_hours",
+    ]
 
     def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f"Starting validation. Input shape: {df.shape}")
+        """Validates the input employee records according to business domain rules."""
+        logger.info("Starting validation. Input shape: %s", df.shape)
         df = self._check_required_columns(df)
         df = self._coerce_numeric(df)
         df = self._drop_missing_critical(df)
         df = self._drop_invalid_salary(df)
         df = self._drop_invalid_email(df)
-        logger.info(f"Validation complete. Output shape: {df.shape}")
+        logger.info("Validation complete. Output shape: %s", df.shape)
         return df
 
     def _check_required_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -37,7 +58,9 @@ class EmployeeValidator:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
                 coerced = df[col].isna().sum() - before
                 if coerced > 0:
-                    logger.warning(f"Column '{col}': {coerced} non-numeric values set to NaN.")
+                    logger.warning(
+                        "Column '%s': %s non-numeric values set to NaN.", col, coerced
+                    )
         return df
 
     def _drop_missing_critical(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -46,7 +69,9 @@ class EmployeeValidator:
         df = df.dropna(subset=critical)
         dropped = before - len(df)
         if dropped:
-            logger.warning(f"Dropped {dropped} rows missing critical fields {critical}.")
+            logger.warning(
+                "Dropped %s rows missing critical fields %s.", dropped, critical
+            )
         return df
 
     def _drop_invalid_salary(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -54,7 +79,7 @@ class EmployeeValidator:
         df = df[df["salary_eur"] > 0]
         dropped = before - len(df)
         if dropped:
-            logger.warning(f"Dropped {dropped} rows with non-positive salary_eur.")
+            logger.warning("Dropped %s rows with non-positive salary_eur.", dropped)
         return df
 
     def _drop_invalid_email(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -63,5 +88,5 @@ class EmployeeValidator:
         df = df[mask]
         dropped = before - len(df)
         if dropped:
-            logger.warning(f"Dropped {dropped} rows with invalid email addresses.")
+            logger.warning("Dropped %s rows with invalid email addresses.", dropped)
         return df

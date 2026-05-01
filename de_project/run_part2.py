@@ -1,37 +1,46 @@
-import sys
-import os
+"""
+Script to run Part 2: Employee Real-Time Pipeline.
+"""
+
+# pylint: disable=duplicate-code
 import logging
+import os
+import sys
 from pathlib import Path
 
+from backup_validator_writer import (
+    EmployeeBackupValidator,
+    EmployeeWriter,
+)  # pylint: disable=import-error
 from dotenv import load_dotenv
+from processor import EmployeeProcessor  # pylint: disable=import-error
+from reader import EmployeeReader  # pylint: disable=import-error
+from validator import EmployeeValidator  # pylint: disable=import-error
+
 load_dotenv(Path(__file__).parent / "airflow-docker" / ".env")
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
 sys.path.insert(0, "part2")
 
-from reader import EmployeeReader
-from validator import EmployeeValidator
-from processor import EmployeeProcessor
-from backup_validator_writer import EmployeeBackupValidator, EmployeeWriter
 
 print("=" * 60)
 print("PART 2 — Employee Real-Time Pipeline")
 print("=" * 60)
 
 # Generate test data if it doesn't exist yet
-sample_path = "sample_data/employee_records_unclean.csv"
-if not os.path.exists(sample_path):
+SAMPLE_PATH = "sample_data/employee_records_unclean.csv"
+if not os.path.exists(SAMPLE_PATH):
     print("Generating sample data...")
     os.makedirs("part2/sample_data", exist_ok=True)
-    exec(open("part2/generate_sample_data.py").read())
+    with open("part2/generate_sample_data.py", encoding="utf-8") as f:
+        exec(f.read())  # pylint: disable=exec-used
 
 # Step 1 — Read
 print("\n[1/5] Reading...")
-reader = EmployeeReader(sample_path)
+reader = EmployeeReader(SAMPLE_PATH)
 df = reader.read()
 
 # Step 2 — Validate
@@ -56,7 +65,7 @@ if not passed:
 print("\n[5/5] Writing...")
 writer = EmployeeWriter(
     local_output_dir="part2/output",
-    azure_connection_str=os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    azure_connection_str=os.environ.get("AZURE_STORAGE_CONNECTION_STRING"),
 )
 output = writer.write(df)
 

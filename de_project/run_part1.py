@@ -1,23 +1,27 @@
-import sys
-import os
+"""
+Script to run Part 1: Yellow Taxi Batch Pipeline.
+"""
+
 import logging
+import os
+import sys
 from pathlib import Path
 
+from backup_validator import TaxiBackupValidator  # pylint: disable=import-error
 from dotenv import load_dotenv
+from processor import TaxiProcessor  # pylint: disable=import-error
+from reader import TaxiReader  # pylint: disable=import-error
+from validator import TaxiValidator  # pylint: disable=import-error
+from writer import TaxiWriter  # pylint: disable=import-error
+
 load_dotenv(Path(__file__).parent / "airflow-docker" / ".env")
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
 sys.path.insert(0, "part1")
 
-from reader import TaxiReader
-from validator import TaxiValidator
-from processor import TaxiProcessor
-from backup_validator import TaxiBackupValidator
-from writer import TaxiWriter
 
 print("=" * 60)
 print("PART 1 — Yellow Taxi Batch Pipeline")
@@ -45,7 +49,7 @@ if not passed:
 print("\n[5/5] Writing...")
 writer = TaxiWriter(
     local_output_dir="part1/output",
-    azure_connection_str=os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    azure_connection_str=os.environ.get("AZURE_STORAGE_CONNECTION_STRING"),
 )
 output = writer.write(df)
 

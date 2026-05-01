@@ -1,10 +1,16 @@
-import pandas as pd
+"""
+Module for processing NYC Yellow Taxi records and creating derived features.
+"""
+
+# pylint: disable=trailing-newlines
 import logging
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-class TaxiProcessor:
+class TaxiProcessor:  # pylint: disable=too-few-public-methods
     """
     Processes the validated Yellow Taxi DataFrame.
 
@@ -15,6 +21,7 @@ class TaxiProcessor:
     COLUMNS_TO_REMOVE = ["VendorID", "store_and_fwd_flag", "RatecodeID"]
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Processes and enriches the validated taxi trip DataFrame."""
         logger.info("Starting processing step.")
         df = self._remove_columns(df)
         df = self._add_trip_duration(df)
@@ -24,19 +31,21 @@ class TaxiProcessor:
         df = self._add_trip_distance_category(df)
         df = self._add_fare_category(df)
         df = self._add_trip_time_of_day(df)
-        logger.info(f"Processing complete. Final shape: {df.shape}")
+        logger.info("Processing complete. Final shape: %s", df.shape)
         return df
 
     def _remove_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         cols_to_drop = [c for c in self.COLUMNS_TO_REMOVE if c in df.columns]
         df = df.drop(columns=cols_to_drop)
-        logger.info(f"Removed columns: {cols_to_drop}")
+        logger.info("Removed columns: %s", cols_to_drop)
         return df
 
     def _add_trip_duration(self, df: pd.DataFrame) -> pd.DataFrame:
         df["trip_duration_minutes"] = (
-            (df["tpep_dropoff_datetime"] - df["tpep_pickup_datetime"])
-            .dt.total_seconds() / 60
+            (
+                df["tpep_dropoff_datetime"] - df["tpep_pickup_datetime"]
+            ).dt.total_seconds()
+            / 60
         ).round(2)
         logger.info("Added column: trip_duration_minutes")
         return df
@@ -71,10 +80,9 @@ class TaxiProcessor:
         def categorize(dist):
             if dist < 2:
                 return "Short"
-            elif dist <= 10:
+            if dist <= 10:
                 return "Medium"
-            else:
-                return "Long"
+            return "Long"
 
         df["trip_distance_category"] = df["trip_distance"].apply(categorize)
         logger.info("Added column: trip_distance_category")
@@ -84,10 +92,9 @@ class TaxiProcessor:
         def categorize(fare):
             if fare < 20:
                 return "Low"
-            elif fare <= 50:
+            if fare <= 50:
                 return "Medium"
-            else:
-                return "High"
+            return "High"
 
         df["fare_category"] = df["fare_amount"].apply(categorize)
         logger.info("Added column: fare_category")
@@ -97,12 +104,11 @@ class TaxiProcessor:
         def categorize(hour):
             if 0 <= hour < 6:
                 return "Night"
-            elif 6 <= hour < 12:
+            if 6 <= hour < 12:
                 return "Morning"
-            elif 12 <= hour < 18:
+            if 12 <= hour < 18:
                 return "Afternoon"
-            else:
-                return "Evening"
+            return "Evening"
 
         df["trip_time_of_day"] = df["tpep_pickup_datetime"].dt.hour.apply(categorize)
         logger.info("Added column: trip_time_of_day")
