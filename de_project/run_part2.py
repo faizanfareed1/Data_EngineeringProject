@@ -8,14 +8,16 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent / "part2"))
+
 from backup_validator_writer import (
     EmployeeBackupValidator,
     EmployeeWriter,
-)  # pylint: disable=import-error
+)  # pylint: disable=import-error, wrong-import-position
 from dotenv import load_dotenv
-from processor import EmployeeProcessor  # pylint: disable=import-error
-from reader import EmployeeReader  # pylint: disable=import-error
-from validator import EmployeeValidator  # pylint: disable=import-error
+from processor import EmployeeProcessor  # pylint: disable=import-error, wrong-import-position
+from reader import EmployeeReader  # pylint: disable=import-error, wrong-import-position
+from validator import EmployeeValidator  # pylint: disable=import-error, wrong-import-position
 
 load_dotenv(Path(__file__).parent / "airflow-docker" / ".env")
 
@@ -23,7 +25,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-sys.path.insert(0, "part2")
 
 
 print("=" * 60)

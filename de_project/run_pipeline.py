@@ -7,19 +7,22 @@ import logging
 import os
 import sys
 
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent / "part2"))
+
 from backup_validator_writer import (
     EmployeeBackupValidator,
     EmployeeWriter,
-)  # pylint: disable=import-error
-from processor import EmployeeProcessor  # pylint: disable=import-error
-from reader import EmployeeReader  # pylint: disable=import-error
-from validator import EmployeeValidator  # pylint: disable=import-error
+)  # pylint: disable=import-error, wrong-import-position
+from processor import EmployeeProcessor  # pylint: disable=import-error, wrong-import-position
+from reader import EmployeeReader  # pylint: disable=import-error, wrong-import-position
+from validator import EmployeeValidator  # pylint: disable=import-error, wrong-import-position
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-sys.path.insert(0, "part2")
 
 
 print("=" * 60)
@@ -28,14 +31,14 @@ print("=" * 60)
 
 # First generate the test data if it doesn't exist
 
-if not os.path.exists("part2/sample_data/employee_records_unclean.csv"):
+if not os.path.exists("sample_data/employee_records_unclean.csv"):
     print("Generating sample data...")
     with open("part2/generate_sample_data.py", encoding="utf-8") as f:
         exec(f.read())  # pylint: disable=exec-used
 
 # Step 1 — Read
 print("\n[1/5] Reading...")
-reader = EmployeeReader("part2/sample_data/employee_records_unclean.csv")
+reader = EmployeeReader("sample_data/employee_records_unclean.csv")
 df = reader.read()
 
 # Step 2 — Validate
