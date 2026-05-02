@@ -37,60 +37,33 @@ de_project/
 ### 1. Install dependencies
 
 ```bash
-pip install pandas pyarrow openpyxl azure-storage-blob apache-airflow
+python -m pip install -r requirements.txt
 ```
 
-### 2. Set up Airflow with Docker (Windows)
+### 2. Configure environment variables
 
-Follow the Airflow Setup Guide PDF from Toledo:
+```bash
+cp airflow-docker/.env.example airflow-docker/.env
+```
 
-```powershell
-mkdir airflow-docker
+Edit `airflow-docker/.env` and fill in:
+- `AZURE_STORAGE_CONNECTION_STRING` — your Azure Storage connection string
+- `FERNET_KEY` — generate with: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
+
+### 3. Start Airflow with Docker
+
+```bash
 cd airflow-docker
-curl.exe -LfO "https://airflow.apache.org/docs/apache-airflow/stable/docker-compose.yaml"
-mkdir dags, logs, plugins, config
-Set-Content .env "AIRFLOW_UID=50000"
-docker compose up airflow-init
-docker compose up
+docker compose up -d
 ```
 
-Open http://localhost:8080 (user: airflow / pass: airflow)
+Open http://localhost:8080 — login: `airflow` / `airflow`
 
-### 3. Mount your DAGs
+The `part1/` and `part2/` folders are automatically mounted into Airflow via Docker volume mounts — no manual copying needed.
 
-Copy the `part1/` and `part2/` folders into the `dags/` folder of your Airflow project.
+### 4. Place input data (Part 1)
 
-Your `dags/` folder should look like:
-```
-dags/
-├── part1/
-│   ├── reader.py, validator.py, processor.py, backup_validator.py, writer.py
-│   ├── dags/taxi_pipeline_dag.py
-│   └── input/yellow_tripdata_2025-01.parquet
-└── part2/
-    ├── reader.py, validator.py, processor.py, backup_validator_writer.py
-    ├── dags/employee_pipeline_dag.py
-    └── input/
-```
-
-### 4. Set your Azure connection string
-
-In the Airflow UI: Admin → Variables → Add:
-- Key: `AZURE_STORAGE_CONNECTION_STRING`
-- Value: your Azure connection string
-
-Or set it as an environment variable in `docker-compose.yaml`:
-```yaml
-environment:
-  AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net"
-```
-
-### 5. Set the defence date (Part 1)
-
-In `part1/dags/taxi_pipeline_dag.py`, update:
-```python
-start_date=datetime(2026, 4, 26),  # Change to your actual defence date
-```
+Download `yellow_tripdata_2025-01.parquet` from the NYC TLC website and place it in `part1/input/`.
 
 ---
 
