@@ -8,8 +8,10 @@ import os
 import sys
 
 from pathlib import Path
+from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent / "part2"))
+load_dotenv(Path(__file__).parent / "airflow-docker" / ".env")
 
 from backup_validator_writer import (
     EmployeeBackupValidator,
@@ -18,6 +20,7 @@ from backup_validator_writer import (
 from processor import EmployeeProcessor  # pylint: disable=import-error, wrong-import-position
 from reader import EmployeeReader  # pylint: disable=import-error, wrong-import-position
 from validator import EmployeeValidator  # pylint: disable=import-error, wrong-import-position
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -61,7 +64,10 @@ if not passed:
 
 # Step 5 — Write
 print("\n[5/5] Writing...")
-writer = EmployeeWriter(local_output_dir="part2/output", azure_connection_str=None)
+writer = EmployeeWriter(
+    local_output_dir="part2/output",
+    azure_connection_str=os.environ.get("AZURE_STORAGE_CONNECTION_STRING"),
+)
 output = writer.write(df)
 
 print("\n" + "=" * 60)
