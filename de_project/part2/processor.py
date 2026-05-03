@@ -24,6 +24,12 @@ class EmployeeProcessor:  # pylint: disable=too-few-public-methods
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Processes and applies derived metrics to employee records."""
         logger.info("Starting processing step.")
+        if "employee_id" in df.columns:
+            before = len(df)
+            df = df.drop_duplicates(subset=["employee_id"], keep="first")
+            dropped = before - len(df)
+            if dropped:
+                logger.info("Dropped %d duplicate employee records.", dropped)
         df = self._normalize_gender(df)
         df = self._normalize_contract_type(df)
         df = self._add_salary_band(df)

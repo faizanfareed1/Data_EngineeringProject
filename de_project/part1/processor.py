@@ -23,6 +23,11 @@ class TaxiProcessor:  # pylint: disable=too-few-public-methods
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Processes and enriches the validated taxi trip DataFrame."""
         logger.info("Starting processing step.")
+        before = len(df)
+        df = df.drop_duplicates()
+        dropped = before - len(df)
+        if dropped:
+            logger.info("Dropped %d exact duplicate taxi trip records.", dropped)
         df = self._remove_columns(df)
         df = self._add_trip_duration(df)
         df = self._add_average_speed(df)
