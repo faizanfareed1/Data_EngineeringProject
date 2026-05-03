@@ -170,7 +170,7 @@ def task_cleanup(**context):
 with DAG(
     dag_id="employee_realtime_pipeline",
     description="Part 2: Real-time employee data processing with FileSensor",
-    start_date=datetime(2026, 5, 5),  # Defence date
+    start_date=datetime(2026, 5, 1),  # Defence date
     schedule="*/2 * * * *",
     catchup=False,
     tags=["data-engineering", "part2", "realtime"],
