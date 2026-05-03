@@ -61,6 +61,15 @@ Open http://localhost:8080 — login: `airflow` / `airflow`
 
 The `part1/` and `part2/` folders are automatically mounted into Airflow via Docker volume mounts — no manual copying needed.
 
+> **Note — Worker not starting:** The Celery worker depends on the API server being healthy before it starts. On first run the API server can take 3–4 minutes to initialize, causing the worker to stay in `Created` state and never start. If DAG runs appear queued but never execute, check with:
+> ```bash
+> docker ps --filter "name=airflow-docker-airflow-worker-1"
+> ```
+> If the status shows `Created` instead of `Up`, start it manually:
+> ```bash
+> docker start airflow-docker-airflow-worker-1
+> ```
+
 ### 4. Place input data (Part 1)
 
 Download `yellow_tripdata_2025-01.parquet` from the NYC TLC website and place it in `part1/input/`.
@@ -77,9 +86,14 @@ Download `yellow_tripdata_2025-01.parquet` from the NYC TLC website and place it
 ### Part 2 (Real-time)
 1. Enable DAG `employee_realtime_pipeline` in Airflow UI
 2. Generate test data: `python part2/generate_sample_data.py`
-3. Drop any CSV or XLSX file into `part2/input/`
+3. Copy the generated file into the input folder — the script saves to `part2/sample_data/`, **not** `part2/input/`:
+   ```bash
+   cp de_project/part2/sample_data/employee_records_unclean.csv de_project/part2/input/
+   ```
 4. The FileSensor detects it and the pipeline runs automatically
 5. Processed file appears in `part2/output/`, input file moves to `part2/input/archived/`
+
+> **Note — Azure output locations:** Part 1 uploads to the `taxi-output` container, Part 2 uploads to `employee-output`.
 
 ---
 
@@ -109,6 +123,30 @@ Download `yellow_tripdata_2025-01.parquet` from the NYC TLC website and place it
 | hire_date | Non-null, valid date |
 | email | Valid format (non-mandatory, logged only) |
 | performance_score | 1–5 (non-mandatory, logged only) |
+
+---
+
+## Troubleshooting
+
+### Airflow slowing down / connection pool exhaustion
+If Airflow becomes unresponsive with `QueuePool limit of size 5 overflow 10 reached` errors, it means too many simultaneous DAG runs are exhausting Postgres connections. This typically happens when a scheduled DAG accumulates a backlog of queued runs while the worker was down.
+
+Fix: pause both DAGs, kill all running runs, then unpause and re-trigger cleanly.
+```bash
+docker exec airflow-docker-airflow-scheduler-1 airflow dags pause employee_realtime_pipeline
+docker exec airflow-docker-airflow-scheduler-1 airflow dags pause yellow_taxi_batch_pipeline
+```
+Then in the Airflow UI go to **Dag Runs**, filter by `running`, select all and mark as failed.
+
+### Init container stuck on restart
+After `docker compose restart`, `airflow-init` runs again. If the DB connection pool is already exhausted by other services, init will hang indefinitely. Since migrations are already done, just force-stop it:
+```bash
+docker stop airflow-docker-airflow-init-1
+```
+Then restart any unhealthy services:
+```bash
+docker restart airflow-docker-airflow-apiserver-1 airflow-docker-airflow-worker-1 airflow-docker-airflow-triggerer-1 airflow-docker-airflow-dag-processor-1
+```
 
 ---
 

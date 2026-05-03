@@ -14,12 +14,12 @@ import shutil
 import sys
 from datetime import datetime
 
+sys.path.insert(0, "/opt/airflow/dags/part2")
+
 import pandas as pd  # pylint: disable=import-error
 from airflow import DAG  # pylint: disable=import-error
 from airflow.operators.python import PythonOperator  # pylint: disable=import-error
 from airflow.sensors.filesystem import FileSensor  # pylint: disable=import-error
-
-
 from backup_validator_writer import (
     EmployeeBackupValidator,
     EmployeeWriter,
@@ -31,8 +31,6 @@ from reader import EmployeeReader  # pylint: disable=import-error, wrong-import-
 from validator import (
     EmployeeValidator,
 )  # pylint: disable=import-error, wrong-import-position
-
-sys.path.insert(0, "/opt/airflow/dags/part2")
 
 
 # ------------------------------------------------------------------ #
