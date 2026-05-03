@@ -136,7 +136,7 @@ def task_write(**context):
 with DAG(
     dag_id="yellow_taxi_batch_pipeline",
     description="Part 1: Yellow Taxi Trip Records batch processing pipeline",
-    start_date=datetime(2026, 4, 26),  # Update to your actual defence date
+    start_date=datetime(2026, 5, 5),  # Defence date
     schedule="@once",
     catchup=False,
     tags=["data-engineering", "part1", "batch"],
